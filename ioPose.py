@@ -1,22 +1,25 @@
 # -*-coding:utf-8 -*-
-
+#!/usr/bin/python3
+import sys
 import codecs
 import re
 
 if __name__ == '__main__':
-    reader = codecs.open('corrected_poses.txt','r',encoding='utf-8')
-    writer = codecs.open('rgb_qi.txt','w',encoding='utf-8')
+    file_name = sys.argv[1]
+    out_name = sys.argv[2]
+    reader = codecs.open(file_name,'r',encoding='utf-8')
+    writer = codecs.open(out_name,'w',encoding='utf-8')
     # for line in reader:
     #     text = line.strip().split()
     #     word = text[1]
     #     writer.write(word+' '+'rgb/'+word+'.png')
     #     writer.write('\n')
- 
-    while 1:
-    	lines = reader.readlines(38)
-    	if not lines:
-    		break
-    	for i in range(12):
+    
+    
+    lines = reader.readlines()
+    	
+    for i in range(len(lines)):
+	if i%38<12 :
     		line=lines[i]
         	if re.match('pcd_filename',line.strip()):
         		pcd_filename = line.strip().split('"')
@@ -37,7 +40,27 @@ if __name__ == '__main__':
         	if re.match('z:',line.strip()):
         		z_ = line.strip().split()
         		word = z_[1]
+        		writer.write(word+' ')
+        	if re.match('qw:',line.strip()):
+        		qw= line.strip().split()
+        		word = qw[1]
+        		writer.write(word+' ')
+		if re.match('qx:',line.strip()):
+        		qx= line.strip().split()
+        		word = qx[1]
+        		writer.write(word+' ')
+		if re.match('qy:',line.strip()):
+        		qy = line.strip().split()
+        		word = qy[1]
+        		writer.write(word+' ')
+		if re.match('qz:',line.strip()):
+        		qz= line.strip().split()
+        		word = qz[1]
         		writer.write(word+'\n')
-        	else:
+		else:
         		continue
+
+	else:
+		continue
+	
         
