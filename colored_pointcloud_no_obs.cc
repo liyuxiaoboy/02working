@@ -167,8 +167,7 @@ int main(int argc, char **argv)
 {
     if (argc != 8)
     {
-        std::cout << "please input with format: ./color_1 [pcd_poses_path] [img_dir/] [lidarpose_at_img_time.txt] 
-        [output_pcd_dir/] [output_image_dir/] [range limitation, 0 means no limitation] [obs_txt_folder]\n";
+        std::cout << "please input with format: ./color_1 [pcd_poses_path] [img_dir/] [lidarpose_at_img_time.txt] [output_pcd_dir/] [output_image_dir/] [range limitation, 0 means no limitation] [obs_txt_folder]\n";
         return 0;
     }
 
@@ -201,8 +200,8 @@ int main(int argc, char **argv)
     // std::cout<<trans_l_c<<"\n";
 
     std::vector<cv::Point2d> imagePoints;
-
-    cv::Mat intrisicMat(3, 3, cv::DataType<double>::type); // Intrisic matrix
+    // Intrisic matrix
+    cv::Mat intrisicMat(3, 3, cv::DataType<double>::type);
     intrisicMat.at<double>(0, 0) = 1978.606715;
     intrisicMat.at<double>(1, 0) = 0;
     intrisicMat.at<double>(2, 0) = 0;
