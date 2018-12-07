@@ -11,7 +11,7 @@ set(LIBRARY_OUTPUT_PATH  ${PROJECT_SOURCE_DIR}/lib)
 LINK_DIRECTORIES(${PROJECT_SOURCE_DIR}/lib)
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE debug)
 
 #pcl opencv boost
 find_package(PCL 1.7 REQUIRED)
@@ -25,6 +25,6 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
 
-add_executable (colorPoints colored_pointcloud_no_obs.cc )
+add_executable (colorPoints colored_pointcloud_no_obs_v2.cc )
 
 target_link_libraries (colorPoints ${PCL_LIBRARIES} ${OpenCV_LIBS})

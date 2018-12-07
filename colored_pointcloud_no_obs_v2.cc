@@ -8,6 +8,9 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <opencv2/core/eigen.hpp>
 #include <boost/filesystem.hpp>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
@@ -23,12 +26,12 @@ int getNum(const std::string &path)
     for (int i = 5;; i++)
     {
         char tmp = path[path.length() - i];
-        // std::cout<<tmp<<" ";
-        if (tmp < '0' || tmp > '9')
+        if (tmp =='/')
             break;
         num += (tmp - '0') * j;
         j = j * 10;
     }
+    std::cout <<num<<"\n";
     return num;
 }
 
@@ -45,23 +48,22 @@ void getPcdFilesAndPoses(const std::string &path, std::map<long, std::string> &f
         word >> name;
         word >> timestamp;
         long pcd_time = stod(timestamp) * 1e6;
-        files[pcd_time] = "/home/moonx/dev/" + name;
+        files[pcd_time] ="/home/yxli" + name;
         for (int i = 0; i < 7; i++)
         {
             std::string tmp;
             word >> tmp;
             poses[pcd_time][i] = stod(tmp);
         }
-        // std::cout << files[pcd_time];
-        // printf(" %ld %lf %lf %lf %lf %lf %lf %lf\n", pcd_time, poses[pcd_time][0], poses[pcd_time][1], poses[pcd_time][2], poses[pcd_time][3], poses[pcd_time][4], poses[pcd_time][5], poses[pcd_time][6]);
+
     }
     fin.clear();
     fin.close();
 }
 
-void getImgFilesAndPOses(const std::string &image_path, std::map<long, std::string> &files, const std::string &poses_path, std::map<long, double[7]> &poses)
+void getImgFilesAndPOses(const std::string &image_path, std::map<long, std::string> &files, std::map<long, double[7]> &poses)
 {
-    std::ifstream fin(poses_path, std::ios::in);
+    std::ifstream fin(image_path, std::ios::in);
     char line[1024] = {0};
     std::string name = "";
     std::string timestamp = "";
@@ -69,9 +71,12 @@ void getImgFilesAndPOses(const std::string &image_path, std::map<long, std::stri
     {
         std::stringstream word(line);
         word >> name;
+        name = std::to_string(getNum(name));
         word >> timestamp;
         long img_time = stod(timestamp) * 1e6;
-        files[img_time] = image_path + timestamp + ".png";
+        files[img_time] ="/home/yxli/apollo/modules/perception/data/yolo_camera_detector_test/opt/" + name +".png";
+        //std::cout <<files[img_time]  <<" is ok "<<"\n";
+
         for (int i = 0; i < 7; i++)
         {
             std::string tmp;
@@ -115,15 +120,6 @@ std::vector<cv::Point3d> get3DPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
     std::vector<cv::Point3d> points;
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f(new pcl::PointCloud<pcl::PointXYZ>);
     pcl::copyPointCloud(*cloud, *cloud_f);
-
-    // pcl::PassThrough<pcl::PointXYZ> pass;
-    // pass.setInputCloud(cloud_f);
-    // pass.setFilterFieldName("z");
-    // pass.setFilterLimits(0.0, 1000);
-    // //pass.setFilterLimitsNegative (true);
-    // std::cout<<cloud->points.size()<<" " <<20000<< " "<<cloud->points[20000].z<<"\n";
-    // pass.filter(*cloud);
-    // std::cout<<cloud->points.size()<<" "<<20000<< " "<<cloud->points[20000].z<<"\n";
     for (int i = 0; i < cloud->points.size(); i++)
     {
         points.push_back(cv::Point3d(cloud->points[i].x, cloud->points[i].y, cloud->points[i].z));
@@ -135,8 +131,8 @@ std::vector<cv::Point3d> get3DPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 //get tranform from pcd time to image time
 void getTransform(long idx_1, long idx_2, Eigen::Affine3d &T, std::map<long, double[7]> &poses_map, std::map<long, double[7]> &img_time_poses_map)
 {
-    Eigen::Quaterniond q_1(poses_map[idx_1][6], poses_map[idx_1][3], poses_map[idx_1][4], poses_map[idx_1][5]);
-    Eigen::Quaterniond q_2(img_time_poses_map[idx_2][6], img_time_poses_map[idx_2][3], img_time_poses_map[idx_2][4], img_time_poses_map[idx_2][5]);
+    Eigen::Quaterniond q_1(poses_map[idx_1][3], poses_map[idx_1][4], poses_map[idx_1][5], poses_map[idx_1][6]);
+    Eigen::Quaterniond q_2(img_time_poses_map[idx_2][3], img_time_poses_map[idx_2][4], img_time_poses_map[idx_2][5], img_time_poses_map[idx_2][6]);
 
     Eigen::Affine3d p_1, p_2;
     p_1.translation() = Eigen::Vector3d(poses_map[idx_1][0], poses_map[idx_1][1], poses_map[idx_1][2]);
@@ -144,6 +140,7 @@ void getTransform(long idx_1, long idx_2, Eigen::Affine3d &T, std::map<long, dou
     p_2.translation() = Eigen::Vector3d(img_time_poses_map[idx_2][0], img_time_poses_map[idx_2][1], img_time_poses_map[idx_2][2]);
     p_2.linear() = q_2.matrix();
     T = p_2.inverse() * p_1;
+
 }
 
 std::vector<int> GetObstacleID(const std::string &path)
@@ -165,9 +162,9 @@ std::vector<int> GetObstacleID(const std::string &path)
 
 int main(int argc, char **argv)
 {
-    if (argc != 8)
+    if (argc != 6)
     {
-        std::cout << "please input with format: ./color_1 [pcd_poses_path] [img_dir/] [lidarpose_at_img_time.txt] [output_pcd_dir/] [output_image_dir/] [range limitation, 0 means no limitation] [obs_txt_folder]\n";
+        std::cout << "please input with format: ./color_1 [pcd_poses_path] [img_poses_path]  [output_pcd_dir/] [output_image_dir/] [range limitation, 0 means no limitation]\n";
         return 0;
     }
 //pcd_pose
@@ -175,11 +172,10 @@ int main(int argc, char **argv)
 //可以去了多余输入
     std::string img_path = argv[2];
 //image_pose.txt
-    std::string lidar_poses_at_img_time = argv[3];
-    std::string output_pcd_path = argv[4];
-    std::string output_img_path = argv[5];
-    double range = std::stod(argv[6]);
-    //std::string obs_dir = argv[7];
+    std::string output_pcd_path = argv[3];
+    std::string output_img_path = argv[4];
+    double range = std::stod(argv[5]);
+
 
     std::map<long, std::string> pcd_map;
     std::map<long, std::string> img_map;
@@ -187,7 +183,7 @@ int main(int argc, char **argv)
     std::map<long, double[7]> img_time_poses;
 //read pcd_pose.txt image_pose.txt
     getPcdFilesAndPoses(pcd_path, pcd_map, pcd_poses);
-    getImgFilesAndPOses(img_path, img_map, lidar_poses_at_img_time, img_time_poses);
+    getImgFilesAndPOses(img_path, img_map, img_time_poses);
 
 //ext transform between lidar and camera
     Eigen::Matrix4d trans_l_c, trans_c_l;
@@ -199,7 +195,7 @@ int main(int argc, char **argv)
     trans_l_c = extrinsic_l_c.matrix();
     trans_c_l = extrinsic_l_c.inverse().matrix();
 
-    // std::cout<<trans_l_c<<"\n";
+
 //intrisic transform of iamge
     std::vector<cv::Point2d> imagePoints;
     // Intrisic matrix
@@ -247,6 +243,7 @@ int main(int argc, char **argv)
 
         cv::Mat img;
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_src(new pcl::PointCloud<pcl::PointXYZ>);
+        //load pcd
         pcl::io::loadPCDFile<pcl::PointXYZ>(pcd_iter->second, *cloud_src);
 
         //todo transform from pcd's time to img's time
@@ -256,32 +253,25 @@ int main(int argc, char **argv)
         getTransform(pcd_iter->first, img_time, affine_p_i, pcd_poses, img_time_poses);
         Eigen::Affine3d affine_l_c = extrinsic_l_c * affine_p_i;
 
-        // std::cout << "\n Before: \n" << (extrinsic_l_c * affine_p_i).matrix() << "\n";
-        // std::cout << "\n After: \n" << (affine_p_i * extrinsic_l_c).matrix() << "\n";
+
         trans_pcd_img = affine_l_c.matrix();
         trans_img_pcd = affine_l_c.inverse().matrix();
 
-        // std::cout << pcd_iter->first <<" "<<img_time<<"\n";
-        // std::cout << affine_p_i.matrix() << "\n";
 
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cam(new pcl::PointCloud<pcl::PointXYZ>);
         pcl::transformPointCloud(*cloud_src, *cloud_cam, trans_pcd_img);
 
         std::vector<cv::Point3d> objectPoints = get3DPoints(cloud_cam);
-        // std::cout<<"cloud_src size: "<<cloud_src->points.size()<<"\n";
+
         cv::projectPoints(objectPoints, rVec, tVec, intrisicMat, distCoeffs, imagePoints);
-        // std::cout<<"imagePoints size: "<<imagePoints.size()<<"\n";
 
         image = cv::imread(img_map[img_time], CV_LOAD_IMAGE_COLOR);
-        // std::cout<<"111\n";
+
         cv::Mat depth_2 = cv::Mat::zeros(image.cols, image.rows, CV_32FC1);
-        // std::cout<<"222\n";
+
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_cam_rgb(new pcl::PointCloud<pcl::PointXYZRGB>);
 
-        std::string obs_path = obs_dir + std::to_string(getNum(pcd_iter->second)) + ".txt";
-        std::vector<int> obstacle_id;
-        obstacle_id = GetObstacleID(obs_path);
-        int obs_idx = 0;
+        std::cout << pcd_iter->first <<" "<<img_time<<"\n";
 
         for (int i = 0; i < imagePoints.size(); i++)
         {
@@ -291,29 +281,26 @@ int main(int argc, char **argv)
             auto y = cloud_cam->points[i].y;
             auto z = cloud_cam->points[i].z;
 
-            if (i == obstacle_id[obs_idx])
-            {
-                obs_idx++;
-                continue;
-            }
-
             if (z <= 0)
             {
                 continue;
             }
 
-            // std::cout<<"col: "<<col<<" row: "<<row<<" x: "<<x<<" y: "<<y<<" z: "<<z<<"\n";
 
             bool hide_flag = false;
             if (col >= 0 && col < image.cols && row >= 0 && row < image.rows)
             {
+               if( image.at<cv::Vec3b>(row, col)[2]==0 && image.at<cv::Vec3b>(row, col)[1]==0 && image.at<cv::Vec3b>(row, col)[0]==0)
+               {
+                   continue;
+               }
+
                 if (depth_2.at<float>(row, col) == 0)
                     depth_2.at<float>(row, col) = x * x + y * y + z * z;
                 else if (x * x + y * y + z * z < depth_2.at<float>(row, col))
                 {
                     depth_2.at<float>(row, col) = x * x + y * y + z * z;
                     hide_flag = true;
-                    // std::cout<<"hide"<<"\n";
                 }
             }
 
@@ -329,11 +316,12 @@ int main(int argc, char **argv)
                 cloud_cam_rgb->points.push_back(point);
             }
         }
+        std::cout << cloud_cam_rgb->points.size() <<" can be used "<<"\n";
+
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_lid_rgb(new pcl::PointCloud<pcl::PointXYZRGB>);
         pcl::transformPointCloud(*cloud_cam_rgb, *cloud_lid_rgb, trans_img_pcd);
 
-        // std::cout<<cloud_cam_rgb->points.size()<<std::endl;
-        // std::cout<<pcd_iter->second<<std::endl;
+
         if (cloud_lid_rgb->points.size() != 0)
         {
             cloud_lid_rgb->width = 1;
