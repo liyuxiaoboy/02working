@@ -194,6 +194,14 @@ int main(int argc, char **argv)
     extrinsic_l_c = extrinsic_l_c.inverse();
     trans_l_c = extrinsic_l_c.matrix();
     trans_c_l = extrinsic_l_c.inverse().matrix();
+    // Eigen::Matrix4d trans_l_c, trans_c_l;
+    // Eigen::Quaterniond q_c_l(0.538867, -0.480859, 0.460358, -0.516205);
+    // Eigen::Affine3d extrinsic_l_c;
+    // extrinsic_l_c.translation() = Eigen::Vector3d(0.546826, 0.053769, 0.356172);
+    // extrinsic_l_c.linear() = q_c_l.matrix();
+    // extrinsic_l_c = extrinsic_l_c.inverse();
+    // trans_l_c = extrinsic_l_c.matrix();
+    // trans_c_l = extrinsic_l_c.inverse().matrix();
 
 
 //intrisic transform of iamge
@@ -228,6 +236,40 @@ int main(int argc, char **argv)
     distCoeffs.at<double>(2) = 0.005977;
     distCoeffs.at<double>(3) = 0.002924;
     distCoeffs.at<double>(4) = 0;
+
+// //intrisic transform of iamge
+//     std::vector<cv::Point2d> imagePoints;
+//     // Intrisic matrix
+//     cv::Mat intrisicMat(3, 3, cv::DataType<double>::type);
+//     intrisicMat.at<double>(0, 0) = 1984.964717;
+//     intrisicMat.at<double>(1, 0) = 0;
+//     intrisicMat.at<double>(2, 0) = 0;
+
+//     intrisicMat.at<double>(0, 1) = 0;
+//     intrisicMat.at<double>(1, 1) = 1996.986882;
+//     intrisicMat.at<double>(2, 1) = 0;
+
+//     intrisicMat.at<double>(0, 2) = 842.779003;
+//     intrisicMat.at<double>(1, 2) = 593.359923;
+//     intrisicMat.at<double>(2, 2) = 1;
+
+//     cv::Mat rVec(3, 1, cv::DataType<double>::type); // Rotation vector
+//     rVec.at<double>(0) = 0;
+//     rVec.at<double>(1) = 0;
+//     rVec.at<double>(2) = 0;
+
+//     cv::Mat tVec(3, 1, cv::DataType<double>::type); // Translation vector
+//     tVec.at<double>(0) = 0;
+//     tVec.at<double>(1) = 0;
+//     tVec.at<double>(2) = 0;
+
+//     cv::Mat distCoeffs(5, 1, cv::DataType<double>::type); // Distortion vector
+//     distCoeffs.at<double>(0) = -0.542865;
+//     distCoeffs.at<double>(1) = 0.245749;
+//     distCoeffs.at<double>(2) = 0.005958;
+//     distCoeffs.at<double>(3) = 0.005136;
+//     distCoeffs.at<double>(4) = 0;
+//遮挡点标记
 //遮挡点标记
     int flag = 0;
 
@@ -331,7 +373,7 @@ int main(int argc, char **argv)
             pcl::io::savePCDFileASCII(output_pcd_path + name + ".pcd", *cloud_lid_rgb);
             std::cout << "Saved " << cloud_lid_rgb->points.size() << " data points to " << name << ".pcd." << std::endl;
 
-            cv::imwrite(output_img_path + name + ".png", image);
+           // cv::imwrite(output_img_path + name + ".png", image);
         }
     }
 
