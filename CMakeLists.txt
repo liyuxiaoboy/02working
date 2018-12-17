@@ -26,5 +26,7 @@ add_definitions(${PCL_DEFINITIONS})
 list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
 
 add_executable (colorPoints colored_pointcloud_no_obs_v2.cc )
-
 target_link_libraries (colorPoints ${PCL_LIBRARIES} ${OpenCV_LIBS})
+
+add_executable (pcd_merge pcd_merge.cc )
+target_link_libraries (pcd_merge ${PCL_LIBRARIES} ${OpenCV_LIBS})
