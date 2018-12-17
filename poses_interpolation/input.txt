@@ -1,0 +1,7 @@
+input_poses_path /pcd/odometry_loc.txt
+ref_timestamps_path /pcd/pcd_timestamp.txt
+extrinsic_path EXTRINSIC_FILE
+gnss_best_pose_path /pcd/gnss_best_pose.txt
+gnss_status_path /pcd/gnss_status.txt
+chassis_path /pcd/chassis.txt
+output_poses_path /pcd/corrected_poses.txt
