@@ -286,7 +286,10 @@ int main(int argc, char **argv)
         cv::Mat img;
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_src(new pcl::PointCloud<pcl::PointXYZ>);
         //load pcd
-        pcl::io::loadPCDFile<pcl::PointXYZ>(pcd_iter->second, *cloud_src);
+        if(pcl::io::loadPCDFile<pcl::PointXYZ>(pcd_iter->second, *cloud_src)==-1)
+        {
+            continue;
+        }
 
         //todo transform from pcd's time to img's time
         Eigen::Matrix4d trans_pcd_img;
@@ -370,7 +373,7 @@ int main(int argc, char **argv)
             cloud_lid_rgb->height = cloud_lid_rgb->points.size();
             // std::cout<<pcd_iter->second;
             std::string name = std::to_string(getNum(pcd_iter->second));
-            pcl::io::savePCDFileASCII(output_pcd_path + name + ".pcd", *cloud_lid_rgb);
+            pcl::io::savePCDFileBinary(output_pcd_path + name + ".pcd", *cloud_lid_rgb);
             std::cout << "Saved " << cloud_lid_rgb->points.size() << " data points to " << name << ".pcd." << std::endl;
 
            // cv::imwrite(output_img_path + name + ".png", image);

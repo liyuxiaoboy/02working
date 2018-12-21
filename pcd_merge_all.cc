@@ -95,61 +95,35 @@ int main(int argc, char **argv)
 //read pcd_pose.txt   pcd_poses[pcd_time][7] pcd_map[pcd_time][s]
     getPcdFilesAndPoses(pcd_path, pcd_map, pcd_poses);
 
-    long a=0;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_sum(new pcl::PointCloud<pcl::PointXYZ>);
+    long base_index = 0;
+    int count=0;
     for ( auto pcd_iter = pcd_map.begin() ; pcd_iter != pcd_map.end(); pcd_iter++)
-    {   
-        if(a<200)
-        {
-            a++;
-            continue;
-        }
-
-        if(a>500)
-        {
-            break;
-        }
-        if(a>10 && a<pcd_map.size()-10)
-        {
-            pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_base(new pcl::PointCloud<pcl::PointXYZ>);
-            pcl::io::loadPCDFile(pcd_iter->second, *cloud_base);
-            auto begin_iter=pcd_iter;
-            auto end_iter=pcd_iter;
-            for(int count = 0;count<50;count++)
+    {
+            if(base_index==0)
             {
-                 //begin_iter-- ;
-                 end_iter++ ;
+                base_index=pcd_iter->first;
+                pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_temp(new pcl::PointCloud<pcl::PointXYZ>);
+                pcl::io::loadPCDFile(pcd_iter->second, *cloud_temp);
+                *cloud_sum = *cloud_temp;
             }
-            end_iter++;
-            for(auto j = begin_iter; j != end_iter; j++ )
+            else
             {
-                if(j==pcd_iter)
-                {
-                    continue;
-                }
                 Eigen::Matrix4d trans_temp_base;
                 Eigen::Affine3d affine_p_i;
-                getTransform(j->first, pcd_iter->first, affine_p_i, pcd_poses, pcd_poses);
+                getTransform(pcd_iter->first, base_index, affine_p_i, pcd_poses, pcd_poses);
                 trans_temp_base = affine_p_i.matrix();
                 pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_tmp(new pcl::PointCloud<pcl::PointXYZ>);
                 pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_j(new pcl::PointCloud<pcl::PointXYZ>);
-                pcl::io::loadPCDFile(j->second, *cloud_j);
+                pcl::io::loadPCDFile(pcd_iter->second, *cloud_j);
                 pcl::transformPointCloud(*cloud_j, *cloud_tmp, trans_temp_base);
-                *cloud_base += *cloud_tmp;
+                *cloud_sum += *cloud_tmp;
             }
-            std::string name = std::to_string(getNum(pcd_iter->second));
-            pcl::io::savePCDFileBinary(output_pcd_path + name + ".pcd", *cloud_base);
-        }
-        else
-        {
-            pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_tmp(new pcl::PointCloud<pcl::PointXYZ>);
-            pcl::io::loadPCDFile(pcd_iter->second, *cloud_tmp);
-            std::string name = std::to_string(getNum(pcd_iter->second));
-            pcl::io::savePCDFileBinary(output_pcd_path + name + ".pcd", *cloud_tmp);
-
-        }
-        a++;
+    
+    std::cout<<"merge the "<<count<<" number. "<<endl;
+    count++;
     }
-
+    pcl::io::savePCDFileBinary(output_pcd_path , *cloud_sum);
     
 
     return 0;

@@ -23,6 +23,7 @@ include_directories( ${OPENCV_INCLUDE_DIR} )
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
+LINK_LIBRARIES( ${PCL_LIBRARY_DIRS} )
 list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
 
 add_executable (colorPoints colored_pointcloud_no_obs_v2.cc )
@@ -30,3 +31,9 @@ target_link_libraries (colorPoints ${PCL_LIBRARIES} ${OpenCV_LIBS})
 
 add_executable (pcd_merge pcd_merge.cc )
 target_link_libraries (pcd_merge ${PCL_LIBRARIES} ${OpenCV_LIBS})
+
+add_executable (pcd_merge_all pcd_merge_all.cc )
+target_link_libraries (pcd_merge_all ${PCL_LIBRARIES} ${OpenCV_LIBS})
+
+add_executable (voxel voxel.cc )
+target_link_libraries (voxel ${PCL_LIBRARIES} ${OpenCV_LIBS})
