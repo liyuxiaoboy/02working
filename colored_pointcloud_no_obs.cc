@@ -214,7 +214,7 @@ int main(int argc, char **argv)
     intrisicMat.at<double>(1, 2) = 534.97131;
     intrisicMat.at<double>(2, 2) = 1;
 
-    cv::Mat rVec(3, 1, cv::DataType<double>::type); // Rotation vector
+    cv::Mat rVec(3, 1, cv::DataType<double>::type); // Rotation vector药剂学’两种能力都不错，产出的
     rVec.at<double>(0) = 0;
     rVec.at<double>(1) = 0;
     rVec.at<double>(2) = 0;

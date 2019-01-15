@@ -287,7 +287,10 @@ int main(int argc, char **argv) {
     int64 img_time;
     int64 pcd_time = pcd_iter->first;
     std::string pcd_file = pcd_iter->second;
-
+    std::ifstream fin(pcd_file);
+    if (!fin) {
+        continue;
+    }
     if (!GetClosestImage(pcd_time, img_map, img_iter, &img_time)) continue;
     std::string image_file = img_map[img_time];
 
