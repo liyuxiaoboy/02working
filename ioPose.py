@@ -19,7 +19,7 @@ if __name__ == '__main__':
     lines = reader.readlines()
     	
     for i in range(len(lines)):
-	if i%38<12 :
+	if (i-13)%38<12 and (i-13)%38>0:
     		line=lines[i]
         	if re.match('pcd_filename',line.strip()):
         		pcd_filename = line.strip().split('"')
@@ -62,5 +62,3 @@ if __name__ == '__main__':
 
 	else:
 		continue
-	
-        
